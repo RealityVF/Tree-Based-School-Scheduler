@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.StudentMapper">
+    
+    <select id="countStudents" resultType="int">
+        SELECT COUNT(*)
+        FROM students s
+        LEFT JOIN classes c ON s.class_id = c.id
+        LEFT JOIN majors m ON c.major_id = m.id
+        WHERE 1=1
+        <if test="keyword != null and keyword != ''">
+            AND (s.name LIKE CONCAT('%', #{keyword}, '%')
+            OR s.id LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="classId != null and classId != ''">
+            AND s.class_id = #{classId}
+        </if>
+        <if test="majorId != null and majorId != ''">
+            AND c.major_id = #{majorId}
+        </if>
+    </select>
+
+    <select id="getStudentList" resultType="com.example.entity.Student">
+        SELECT 
+            s.id,
+            s.name,
+            s.gender,
+            s.birthday,
+            s.class_id,
+            s.phone,
+            s.is_active,
+            c.name as class_name,
+            m.id as major_id,
+            m.name as major_name
+        FROM students s
+        LEFT JOIN classes c ON s.class_id = c.id
+        LEFT JOIN majors m ON c.major_id = m.id
+        WHERE 1=1
+        <if test="keyword != null and keyword != ''">
+            AND (s.name LIKE CONCAT('%', #{keyword}, '%')
+            OR s.id LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="classId != null and classId != ''">
+            AND s.class_id = #{classId}
+        </if>
+        <if test="majorId != null and majorId != ''">
+            AND c.major_id = #{majorId}
+        </if>
+        ORDER BY s.id
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="getStudentById" resultType="com.example.entity.Student">
+        SELECT 
+            s.id,
+            s.name,
+            s.gender,
+            s.birthday,
+            s.class_id,
+            s.phone,
+            s.is_active,
+            c.name as class_name,
+            m.id as major_id,
+            m.name as major_name
+        FROM students s
+        LEFT JOIN classes c ON s.class_id = c.id
+        LEFT JOIN majors m ON c.major_id = m.id
+        WHERE s.id = #{id}
+    </select>
+
+    <insert id="insertStudent" parameterType="com.example.entity.Student">
+        INSERT INTO students (
+            id, name, gender, birthday, 
+            class_id, phone, enrollment_date
+        ) VALUES (
+            #{id}, #{name}, 
+            <choose>
+                <when test="gender == 'male'">
+                    '男'
+                </when>
+                <when test="gender == 'female'">
+                    '女'
+                </when>
+                <otherwise>
+                    #{gender}
+                </otherwise>
+            </choose>, 
+            #{birthday},
+            #{class_id}, #{phone}, #{enrollment_date}
+        )
+    </insert>
+
+    <update id="updateStudent" parameterType="com.example.entity.Student">
+        UPDATE students
+        SET name = #{name},
+            gender = 
+            <choose>
+                <when test="gender == 'male'">
+                    '男'
+                </when>
+                <when test="gender == 'female'">
+                    '女'
+                </when>
+                <otherwise>
+                    #{gender}
+                </otherwise>
+            </choose>,
+            birthday = #{birthday},
+            class_id = #{class_id},
+            phone = #{phone},
+            enrollment_date = #{enrollment_date}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteStudent">
+        DELETE FROM students WHERE id = #{id}
+    </delete>
+
+    <select id="findByUsername" resultType="com.example.entity.Student">
+        SELECT 
+            s.id,
+            s.name,
+            s.gender,
+            s.birthday,
+            s.class_id,
+            s.phone,
+            s.is_active,
+            sa.password_hash,
+            sa.email,
+            sa.is_active as account_is_active,
+            c.name as class_name,
+            m.name as major_name
+        FROM student_accounts sa
+        INNER JOIN students s ON sa.student_id = s.id
+        LEFT JOIN classes c ON s.class_id = c.id
+        LEFT JOIN majors m ON c.major_id = m.id
+        WHERE sa.student_id = #{username}
+    </select>
+</mapper> 

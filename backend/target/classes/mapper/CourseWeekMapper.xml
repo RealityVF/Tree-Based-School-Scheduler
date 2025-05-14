@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.CourseWeekMapper">
+    <resultMap id="courseWeekMap" type="com.example.entity.CourseWeek">
+        <id property="week_id" column="week_id"/>
+        <result property="course_id" column="course_id"/>
+        <result property="week_number" column="week_number"/>
+        <result property="is_active" column="is_active"/>
+        <result property="created_at" column="created_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="courseWeekMap">
+        SELECT * FROM course_weeks WHERE week_id = #{week_id}
+    </select>
+
+    <select id="findByCourseId" resultMap="courseWeekMap">
+        SELECT * FROM course_weeks WHERE course_id = #{course_id}
+    </select>
+
+    <select id="findByCourseIdAndWeekNumber" resultMap="courseWeekMap">
+        SELECT * FROM course_weeks 
+        WHERE course_id = #{course_id} 
+        AND week_number = #{week_number}
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.CourseWeek" useGeneratedKeys="true" keyProperty="week_id">
+        INSERT INTO course_weeks (course_id, week_number, is_active)
+        VALUES (#{course_id}, #{week_number}, #{is_active})
+    </insert>
+
+    <update id="update" parameterType="com.example.entity.CourseWeek">
+        UPDATE course_weeks
+        SET course_id = #{course_id},
+            week_number = #{week_number},
+            is_active = #{is_active}
+        WHERE week_id = #{week_id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM course_weeks WHERE week_id = #{week_id}
+    </delete>
+</mapper> 

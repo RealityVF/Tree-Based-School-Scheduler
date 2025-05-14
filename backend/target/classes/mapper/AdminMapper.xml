@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.AdminMapper">
+    
+    <!-- 基础列 -->
+    <sql id="Base_Column_List">
+        id, password_hash, email, role, department_id, 
+        last_login, is_active, password_updated_at
+    </sql>
+    
+    <!-- 根据用户名查询管理员 -->
+    <select id="findByUsername" resultType="com.example.entity.Admin">
+        SELECT 
+        <include refid="Base_Column_List" />
+        FROM admin_accounts 
+        WHERE id = #{username}
+    </select>
+    
+    <!-- 更新最后登录时间 -->
+    <update id="updateLastLogin">
+        UPDATE admin_accounts 
+        SET last_login = #{lastLogin}
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 查询管理员列表 -->
+    <select id="selectAdminList" resultType="com.example.entity.Admin">
+        SELECT 
+        <include refid="Base_Column_List" />
+        FROM admin_accounts
+        <where>
+            <if test="role != null and role != ''">
+                AND role = #{role}
+            </if>
+            <if test="department_id != null and department_id != ''">
+                AND department_id = #{department_id}
+            </if>
+            <if test="is_active != null">
+                AND is_active = #{is_active}
+            </if>
+        </where>
+    </select>
+    
+    <!-- 根据ID查询管理员 -->
+    <select id="selectAdminById" resultType="com.example.entity.Admin">
+        SELECT 
+        <include refid="Base_Column_List" />
+        FROM admin_accounts 
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 新增管理员 -->
+    <insert id="insertAdmin">
+        INSERT INTO admin_accounts (
+            id,
+            password_hash,
+            email,
+            role,
+            department_id,
+            is_active,
+            password_updated_at
+        ) VALUES (
+            #{id},
+            #{password_hash},
+            #{email},
+            #{role},
+            #{department_id},
+            #{is_active},
+            NOW()
+        )
+    </insert>
+    
+    <!-- 更新管理员信息 -->
+    <update id="updateAdmin">
+        UPDATE admin_accounts
+        <set>
+            <if test="password_hash != null">
+                password_hash = #{password_hash},
+                password_updated_at = NOW(),
+            </if>
+            <if test="email != null">email = #{email},</if>
+            <if test="role != null">role = #{role},</if>
+            <if test="department_id != null">department_id = #{department_id},</if>
+            <if test="is_active != null">is_active = #{is_active},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 删除管理员 -->
+    <delete id="deleteAdmin">
+        DELETE FROM admin_accounts 
+        WHERE id = #{id}
+    </delete>
+    
+</mapper> 

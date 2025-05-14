@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.CourseSemesterRelationMapper">
+    <resultMap id="relationMap" type="com.example.entity.CourseSemesterRelation">
+        <id property="relation_id" column="relation_id"/>
+        <result property="course_id" column="course_id"/>
+        <result property="semester_id" column="semester_id"/>
+        <result property="is_active" column="is_active"/>
+        <result property="created_at" column="created_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="relationMap">
+        SELECT * FROM course_semester_relations WHERE relation_id = #{relation_id}
+    </select>
+
+    <select id="findByCourseId" resultMap="relationMap">
+        SELECT * FROM course_semester_relations WHERE course_id = #{course_id}
+    </select>
+
+    <select id="findBySemesterId" resultMap="relationMap">
+        SELECT * FROM course_semester_relations WHERE semester_id = #{semester_id}
+    </select>
+
+    <select id="findByCourseAndSemester" resultMap="relationMap">
+        SELECT * FROM course_semester_relations 
+        WHERE course_id = #{course_id} 
+        AND semester_id = #{semester_id}
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.CourseSemesterRelation" useGeneratedKeys="true" keyProperty="relation_id">
+        INSERT INTO course_semester_relations (course_id, semester_id, is_active)
+        VALUES (#{course_id}, #{semester_id}, #{is_active})
+    </insert>
+
+    <update id="update" parameterType="com.example.entity.CourseSemesterRelation">
+        UPDATE course_semester_relations
+        SET course_id = #{course_id},
+            semester_id = #{semester_id},
+            is_active = #{is_active}
+        WHERE relation_id = #{relation_id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM course_semester_relations WHERE relation_id = #{relation_id}
+    </delete>
+</mapper> 

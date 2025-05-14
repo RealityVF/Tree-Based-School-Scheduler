@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.CourseScheduleMapper">
+    <resultMap id="scheduleMap" type="com.example.entity.CourseSchedule">
+        <id property="id" column="id"/>
+        <result property="courseId" column="course_id"/>
+        <result property="classroomId" column="classroom_id"/>
+        <result property="weekday" column="weekday"/>
+        <result property="startSection" column="start_section"/>
+        <result property="endSection" column="end_section"/>
+        <result property="academicYear" column="academic_year"/>
+        <result property="semester" column="semester"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <resultMap id="scheduleDTO" type="com.example.dto.CourseScheduleDTO">
+        <id property="id" column="id"/>
+        <result property="courseId" column="course_id"/>
+        <result property="courseName" column="course_name"/>
+        <result property="courseType" column="course_type"/>
+        <result property="classroomId" column="classroom_id"/>
+        <result property="classroomName" column="classroom_name"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="teacherId" column="teacher_id"/>
+        <result property="teacherName" column="teacher_name"/>
+        <result property="classId" column="class_id"/>
+        <result property="className" column="class_name"/>
+        <result property="weekday" column="weekday"/>
+        <result property="startSection" column="start_section"/>
+        <result property="endSection" column="end_section"/>
+        <result property="academicYear" column="academic_year"/>
+        <result property="semester" column="semester"/>
+        <result property="weekNumber" column="week_number"/>
+    </resultMap>
+
+    <select id="findById" resultMap="scheduleMap">
+        SELECT * FROM course_schedules WHERE id = #{id}
+    </select>
+
+    <select id="findByTeacherAndSemester" resultMap="scheduleMap">
+        SELECT DISTINCT cs.* 
+        FROM course_schedules cs
+        INNER JOIN course_class_relations ccr ON cs.course_id = ccr.course_id
+        WHERE ccr.teacher_id = #{teacherId} 
+        AND ccr.semester_year = #{academicYear}
+        AND ccr.semester = #{semester}
+        AND cs.academic_year = ccr.semester_year
+        AND cs.semester = ccr.semester
+    </select>
+
+    <select id="findByClassAndSemester" resultMap="scheduleDTO">
+        SELECT DISTINCT
+            cs.id,
+            cs.course_id,
+            cs.classroom_id,
+            cs.weekday,
+            cs.start_section,
+            cs.end_section,
+            cs.academic_year,
+            cs.semester,
+            c.name as course_name,
+            c.course_type,
+            cr.name as classroom_name,
+            cr.building_id,
+            ccr.teacher_id,
+            t.teacher_name
+        FROM course_schedules cs
+        INNER JOIN courses c ON cs.course_id = c.id
+        INNER JOIN course_class_relations ccr ON cs.course_id = ccr.course_id
+        INNER JOIN classrooms cr ON cs.classroom_id = cr.id
+        INNER JOIN teachers t ON ccr.teacher_id = t.teacher_id
+        WHERE ccr.class_id = #{classId}
+        AND ccr.semester_year = #{academicYear}
+        AND ccr.semester = #{semester}
+        AND cs.academic_year = ccr.semester_year
+        AND cs.semester = ccr.semester
+        ORDER BY cs.weekday, cs.start_section
+    </select>
+
+    <select id="findByClassroomAndSemester" resultMap="scheduleMap">
+        SELECT DISTINCT cs.* 
+        FROM course_schedules cs
+        INNER JOIN course_class_relations ccr ON cs.course_id = ccr.course_id
+        WHERE cs.classroom_id = #{classroomId} 
+        AND ccr.semester_year = #{academicYear}
+        AND ccr.semester = #{semester}
+        AND cs.academic_year = ccr.semester_year
+        AND cs.semester = ccr.semester
+    </select>
+
+    <!-- 查询学生课表 -->
+    <select id="findStudentSemesterSchedule" resultMap="scheduleDTO">
+        SELECT DISTINCT
+            cs.id,
+            cs.course_id,
+            cs.classroom_id,
+            cs.weekday,
+            cs.start_section,
+            cs.end_section,
+            CASE cs.start_section
+                WHEN 1 THEN '08:00'
+                WHEN 3 THEN '10:05'
+                WHEN 5 THEN '14:00'
+                WHEN 7 THEN '16:05'
+                WHEN 9 THEN '19:00'
+                ELSE NULL
+            END as start_time,
+            CASE cs.end_section
+                WHEN 2 THEN '09:35'
+                WHEN 4 THEN '11:40'
+                WHEN 6 THEN '15:35'
+                WHEN 8 THEN '17:40'
+                WHEN 10 THEN '20:35'
+                ELSE NULL
+            END as end_time,
+            cs.academic_year,
+            cs.semester,
+            c.name as course_name,
+            c.course_type,
+            cr.name as classroom_name,
+            cr.building_id,
+            ccr.class_id,
+            cl.name as class_name,
+            ccr.teacher_id,
+            t.name as teacher_name,
+            cw.week_number
+        FROM course_class_relations ccr
+        INNER JOIN course_schedules cs ON cs.course_id = ccr.course_id 
+            AND cs.academic_year = ccr.semester_year 
+            AND cs.semester = ccr.semester
+        LEFT JOIN courses c ON cs.course_id = c.id
+        LEFT JOIN classrooms cr ON cs.classroom_id = cr.id
+        LEFT JOIN teachers t ON ccr.teacher_id = t.id
+        LEFT JOIN classes cl ON ccr.class_id = cl.id
+        LEFT JOIN course_weeks cw ON cs.course_id = cw.course_id
+        WHERE ccr.class_id = #{classId}
+        AND ccr.semester_year = #{academicYear}
+        AND ccr.semester = #{semester}
+        ORDER BY cs.weekday, cs.start_section, cw.week_number
+    </select>
+
+    <!-- 查询教师课表 -->
+    <select id="findTeacherSemesterSchedule" resultMap="scheduleDTO">
+        SELECT DISTINCT
+            cs.id,
+            cs.course_id,
+            cs.classroom_id,
+            cs.weekday,
+            cs.start_section,
+            cs.end_section,
+            CASE cs.start_section
+                WHEN 1 THEN '08:00'
+                WHEN 3 THEN '10:05'
+                WHEN 5 THEN '14:00'
+                WHEN 7 THEN '16:05'
+                WHEN 9 THEN '19:00'
+                ELSE NULL
+            END as start_time,
+            CASE cs.end_section
+                WHEN 2 THEN '09:35'
+                WHEN 4 THEN '11:40'
+                WHEN 6 THEN '15:35'
+                WHEN 8 THEN '17:40'
+                WHEN 10 THEN '20:35'
+                ELSE NULL
+            END as end_time,
+            cs.academic_year,
+            cs.semester,
+            c.name as course_name,
+            c.course_type,
+            cr.name as classroom_name,
+            cr.building_id,
+            ccr.teacher_id,
+            t.name as teacher_name,
+            cw.week_number
+        FROM course_schedules cs
+        INNER JOIN courses c ON cs.course_id = c.id
+        INNER JOIN course_class_relations ccr ON cs.course_id = ccr.course_id
+        INNER JOIN classrooms cr ON cs.classroom_id = cr.id
+        INNER JOIN teachers t ON ccr.teacher_id = t.id
+        LEFT JOIN course_weeks cw ON cs.course_id = cw.course_id
+        WHERE ccr.teacher_id = #{teacherId}
+        AND ccr.semester_year = #{academicYear}
+        AND ccr.semester = #{semester}
+        AND cs.academic_year = ccr.semester_year
+        AND cs.semester = ccr.semester
+        ORDER BY cs.weekday, cs.start_section, cw.week_number
+    </select>
+
+    <!-- 获取课程详情 -->
+    <select id="getCourseDetail" resultMap="scheduleMap">
+        SELECT DISTINCT
+            cs.id,
+            cs.course_id,
+            cs.classroom_id,
+            cs.weekday,
+            cs.start_section,
+            cs.end_section,
+            cs.academic_year,
+            cs.semester,
+            c.name as course_name,
+            c.course_type,
+            cr.name as classroom_name,
+            cr.building_id
+        FROM course_schedules cs
+        INNER JOIN courses c ON cs.course_id = c.id
+        INNER JOIN course_class_relations ccr ON cs.course_id = ccr.course_id
+        INNER JOIN classrooms cr ON cs.classroom_id = cr.id
+        WHERE cs.course_id = #{courseId}
+        AND ccr.semester_year = #{academicYear}
+        AND ccr.semester = #{semester}
+        AND cs.academic_year = ccr.semester_year
+        AND cs.semester = ccr.semester
+    </select>
+
+    <!-- 根据教室和时间查询课程安排 -->
+    <select id="findByClassroomAndTime" resultMap="scheduleMap">
+        SELECT DISTINCT cs.* 
+        FROM course_schedules cs
+        INNER JOIN course_class_relations ccr ON cs.course_id = ccr.course_id
+        WHERE cs.classroom_id = #{classroomId}
+        AND ccr.semester_year = #{academicYear}
+        AND ccr.semester = #{semester}
+        AND cs.academic_year = ccr.semester_year
+        AND cs.semester = ccr.semester
+        AND cs.weekday = #{weekday}
+        AND (
+            (cs.start_section BETWEEN #{startSection} AND #{endSection})
+            OR (cs.end_section BETWEEN #{startSection} AND #{endSection})
+            OR (cs.start_section &lt;= #{startSection} AND cs.end_section &gt;= #{endSection})
+        )
+    </select>
+
+    <!-- 插入课程安排 -->
+    <insert id="insert" parameterType="com.example.entity.CourseSchedule" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO course_schedules (
+            course_id, classroom_id, weekday, start_section, end_section, academic_year, semester
+        ) VALUES (
+            #{courseId}, #{classroomId}, #{weekday}, #{startSection}, #{endSection}, #{academicYear}, #{semester}
+        )
+    </insert>
+
+    <!-- 更新课程安排 -->
+    <update id="update" parameterType="com.example.entity.CourseSchedule">
+        UPDATE course_schedules
+        SET course_id = #{courseId},
+            classroom_id = #{classroomId},
+            weekday = #{weekday},
+            start_section = #{startSection},
+            end_section = #{endSection},
+            academic_year = #{academicYear},
+            semester = #{semester}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除课程安排 -->
+    <delete id="delete">
+        DELETE FROM course_schedules WHERE id = #{id}
+    </delete>
+</mapper> 

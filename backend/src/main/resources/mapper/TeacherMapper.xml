@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.TeacherMapper">
+    <resultMap id="TeacherResultMap" type="com.example.entity.Teacher">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="english_name" property="englishName"/>
+        <result column="gender" property="gender"/>
+        <result column="ethnicity" property="ethnicity"/>
+        <result column="title" property="title"/>
+        <result column="department_id" property="departmentId"/>
+        <result column="is_external" property="isExternal"/>
+        <result column="teacher_type" property="teacherType"/>
+        <result column="satisfaction" property="satisfaction"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="max_weekly_hours" property="maxWeeklyHours"/>
+        <result column="research_direction" property="researchDirection"/>
+        <result column="department_name" property="departmentName"/>
+        <result column="password_hash" property="passwordHash"/>
+        <result column="is_active" property="isActive"/>
+        <result column="last_login" property="lastLoginTime"/>
+    </resultMap>
+
+    <select id="countTeachers" resultType="int">
+        SELECT COUNT(*)
+        FROM teachers t
+        LEFT JOIN departments d ON t.department_id = d.id
+        WHERE 1=1
+        <if test="keyword != null and keyword != ''">
+            AND (t.name LIKE CONCAT('%', #{keyword}, '%')
+            OR t.id LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="departmentId != null and departmentId != ''">
+            AND t.department_id = #{departmentId}
+        </if>
+        <if test="teacherType != null and teacherType != ''">
+            AND t.teacher_type = #{teacherType}
+        </if>
+    </select>
+
+    <select id="getTeacherList" resultMap="TeacherResultMap">
+        SELECT t.*, d.name as department_name
+        FROM teachers t
+        LEFT JOIN departments d ON t.department_id = d.id
+        WHERE 1=1
+        <if test="keyword != null and keyword != ''">
+            AND (t.name LIKE CONCAT('%', #{keyword}, '%')
+            OR t.id LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="departmentId != null and departmentId != ''">
+            AND t.department_id = #{departmentId}
+        </if>
+        <if test="teacherType != null and teacherType != ''">
+            AND t.teacher_type = #{teacherType}
+        </if>
+        ORDER BY t.id
+        <if test="size > 0">
+            LIMIT #{offset}, #{size}
+        </if>
+    </select>
+
+    <select id="getTeacherById" resultMap="TeacherResultMap">
+        SELECT t.*, d.name as department_name
+        FROM teachers t
+        LEFT JOIN departments d ON t.department_id = d.id
+        WHERE t.id = #{id}
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.Teacher">
+        INSERT INTO teachers (
+            id, name, english_name, gender, ethnicity, title, department_id,
+            is_external, teacher_type, satisfaction, phone, email,
+            max_weekly_hours, research_direction, is_active,
+            password_hash, password_updated_at, created_at, updated_at
+        ) VALUES (
+            #{id}, #{name}, #{englishName}, #{gender}, #{ethnicity}, #{title},
+            #{departmentId}, #{isExternal}, #{teacherType}, #{satisfaction},
+            #{phone}, #{email}, #{maxWeeklyHours}, #{researchDirection},
+            #{isActive}, #{passwordHash}, #{passwordUpdatedAt},
+            #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateTeacher" parameterType="com.example.entity.Teacher">
+        UPDATE teachers
+        SET name = #{name},
+            english_name = #{english_name},
+            gender = #{gender},
+            ethnicity = #{ethnicity},
+            title = #{title},
+            department_id = #{department_id},
+            is_external = #{is_external},
+            teacher_type = #{teacher_type},
+            satisfaction = #{satisfaction},
+            phone = #{phone},
+            email = #{email},
+            max_weekly_hours = #{max_weekly_hours},
+            research_direction = #{research_direction},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteTeacher">
+        DELETE FROM teachers WHERE id = #{id}
+    </delete>
+
+    <select id="findByUsername" resultMap="TeacherResultMap">
+        SELECT t.*, d.name as department_name,
+               ta.password_hash, ta.is_active, ta.last_login
+        FROM teachers t
+        LEFT JOIN departments d ON t.department_id = d.id
+        LEFT JOIN teacher_accounts ta ON t.id = ta.teacher_id
+        WHERE t.id = #{username}
+    </select>
+
+    <select id="searchTeachers" resultMap="TeacherResultMap">
+        SELECT t.*, d.name as department_name
+        FROM teachers t
+        LEFT JOIN departments d ON t.department_id = d.id
+        WHERE t.name LIKE CONCAT('%', #{query}, '%')
+        OR t.id LIKE CONCAT('%', #{query}, '%')
+        ORDER BY t.name
+        LIMIT 10
+    </select>
+
+    <select id="findById" resultMap="TeacherResultMap">
+        SELECT t.*, d.name as department_name
+        FROM teachers t
+        LEFT JOIN departments d ON t.department_id = d.id
+        WHERE t.id = #{id}
+    </select>
+
+    <!-- 更新教师信息 -->
+    <update id="update" parameterType="com.example.entity.Teacher">
+        UPDATE teachers
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="englishName != null">english_name = #{englishName},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="ethnicity != null">ethnicity = #{ethnicity},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="departmentId != null">department_id = #{departmentId},</if>
+            <if test="isExternal != null">is_external = #{isExternal},</if>
+            <if test="teacherType != null">teacher_type = #{teacherType},</if>
+            <if test="satisfaction != null">satisfaction = #{satisfaction},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="maxWeeklyHours != null">max_weekly_hours = #{maxWeeklyHours},</if>
+            <if test="researchDirection != null">research_direction = #{researchDirection},</if>
+            <if test="isActive != null">is_active = #{isActive},</if>
+            <if test="passwordHash != null">password_hash = #{passwordHash},</if>
+            <if test="passwordUpdatedAt != null">password_updated_at = #{passwordUpdatedAt},</if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+</mapper> 

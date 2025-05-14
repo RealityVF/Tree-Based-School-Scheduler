@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.SemesterMapper">
+    <resultMap id="semesterMap" type="com.example.entity.Semester">
+        <id property="semester_id" column="semester_id"/>
+        <result property="semester_name" column="semester_name"/>
+        <result property="start_date" column="start_date"/>
+        <result property="end_date" column="end_date"/>
+        <result property="is_current" column="is_current"/>
+        <result property="created_at" column="created_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="semesterMap">
+        SELECT * FROM semesters WHERE semester_id = #{semester_id}
+    </select>
+
+    <select id="findByName" resultMap="semesterMap">
+        SELECT * FROM semesters WHERE semester_name = #{semester_name}
+    </select>
+
+    <select id="findCurrentSemester" resultMap="semesterMap">
+        SELECT * FROM semesters WHERE is_current = 1 LIMIT 1
+    </select>
+
+    <select id="findAll" resultMap="semesterMap">
+        SELECT * FROM semesters ORDER BY start_date DESC
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.Semester" useGeneratedKeys="true" keyProperty="semester_id">
+        INSERT INTO semesters (semester_name, start_date, end_date, is_current)
+        VALUES (#{semester_name}, #{start_date}, #{end_date}, #{is_current})
+    </insert>
+
+    <update id="update" parameterType="com.example.entity.Semester">
+        UPDATE semesters
+        SET semester_name = #{semester_name},
+            start_date = #{start_date},
+            end_date = #{end_date},
+            is_current = #{is_current}
+        WHERE semester_id = #{semester_id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM semesters WHERE semester_id = #{semester_id}
+    </delete>
+</mapper> 

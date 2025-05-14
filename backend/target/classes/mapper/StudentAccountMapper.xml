@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.StudentAccountMapper">
+    
+    <select id="selectStudentAccounts" resultType="com.example.entity.StudentAccount">
+        SELECT 
+            COALESCE(sa.student_id, s.id) as studentId,
+            COALESCE(sa.username, s.id) as username,
+            COALESCE(sa.is_active, true) as isActive,
+            COALESCE(sa.email, CONCAT(s.id, '@temp.edu.cn')) as email,
+            sa.last_login as lastLogin,
+            s.name,
+            s.gender,
+            s.id_card as idCard,
+            s.birthday,
+            s.ethnicity,
+            s.political_status as politicalStatus,
+            s.class_id as classId,
+            s.major_id as majorId,
+            s.department_id as departmentId,
+            s.education_level as educationLevel,
+            s.enrollment_date as enrollmentDate,
+            s.expected_graduation as expectedGraduation,
+            s.student_status as studentStatus,
+            s.phone,
+            s.address,
+            s.notes,
+            s.created_at as createdAt,
+            s.updated_at as updatedAt,
+            c.name as className,
+            m.name as major,
+            d.name as faculty
+        FROM students s
+        LEFT JOIN student_accounts sa ON sa.student_id = s.id
+        LEFT JOIN classes c ON s.class_id = c.id
+        LEFT JOIN majors m ON s.major_id = m.id
+        LEFT JOIN departments d ON s.department_id = d.id
+        <where>
+            <if test="searchKey != null and searchKey != ''">
+                AND (s.id LIKE CONCAT('%', #{searchKey}, '%')
+                OR s.name LIKE CONCAT('%', #{searchKey}, '%'))
+            </if>
+            <if test="faculty != null and faculty != ''">
+                AND s.department_id = #{faculty}
+            </if>
+            <if test="className != null and className != ''">
+                AND s.class_id = #{className}
+            </if>
+            <if test="grade != null and grade != ''">
+                AND s.id LIKE CONCAT(#{grade}, '%')
+            </if>
+            <if test="major != null and major != ''">
+                AND s.major_id = #{major}
+            </if>
+        </where>
+        ORDER BY s.id
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countStudentAccounts" resultType="int">
+        SELECT COUNT(*)
+        FROM students s
+        LEFT JOIN student_accounts sa ON sa.student_id = s.id
+        LEFT JOIN classes c ON s.class_id = c.id
+        LEFT JOIN majors m ON s.major_id = m.id
+        LEFT JOIN departments d ON s.department_id = d.id
+        <where>
+            <if test="searchKey != null and searchKey != ''">
+                AND (s.id LIKE CONCAT('%', #{searchKey}, '%')
+                OR s.name LIKE CONCAT('%', #{searchKey}, '%'))
+            </if>
+            <if test="faculty != null and faculty != ''">
+                AND s.department_id = #{faculty}
+            </if>
+            <if test="className != null and className != ''">
+                AND s.class_id = #{className}
+            </if>
+            <if test="grade != null and grade != ''">
+                AND s.id LIKE CONCAT(#{grade}, '%')
+            </if>
+            <if test="major != null and major != ''">
+                AND s.major_id = #{major}
+            </if>
+        </where>
+    </select>
+</mapper> 

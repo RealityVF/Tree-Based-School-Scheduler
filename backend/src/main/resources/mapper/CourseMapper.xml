@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.CourseMapper">
+    <resultMap id="courseMap" type="com.example.entity.Course">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="category" column="category"/>
+        <result property="attribute" column="attribute"/>
+        <result property="course_type" column="course_type"/>
+        <result property="nature" column="nature"/>
+        <result property="department_name" column="department_name"/>
+        <result property="is_active" column="is_active"/>
+        <result property="total_hours" column="total_hours"/>
+        <result property="theory_hours" column="theory_hours"/>
+        <result property="experiment_hours" column="experiment_hours"/>
+        <result property="computer_hours" column="computer_hours"/>
+        <result property="practice_hours" column="practice_hours"/>
+        <result property="credit" column="credit"/>
+        <result property="weekly_hours" column="weekly_hours"/>
+        <result property="is_practical" column="is_practical"/>
+        <result property="created_at" column="created_at"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, name, category, attribute, course_type, nature, department_name, 
+        is_active, total_hours, theory_hours, experiment_hours, computer_hours, 
+        practice_hours, credit, weekly_hours, is_practical, created_at
+    </sql>
+
+    <select id="getCourseList" resultType="com.example.entity.Course">
+        SELECT 
+        <include refid="Base_Column_List" />
+        FROM courses
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (name LIKE CONCAT('%', #{keyword}, '%') 
+                OR id LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="courseType != null and courseType != ''">
+                AND course_type = #{courseType}
+            </if>
+            <if test="departmentName != null and departmentName != ''">
+                AND department_name = #{departmentName}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countCourses" resultType="int">
+        SELECT COUNT(*)
+        FROM courses
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (name LIKE CONCAT('%', #{keyword}, '%') 
+                OR id LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="courseType != null and courseType != ''">
+                AND course_type = #{courseType}
+            </if>
+            <if test="departmentName != null and departmentName != ''">
+                AND department_name = #{departmentName}
+            </if>
+        </where>
+    </select>
+
+    <select id="getCourseById" resultType="com.example.entity.Course">
+        SELECT 
+        <include refid="Base_Column_List" />
+        FROM courses
+        WHERE id = #{id}
+    </select>
+
+    <select id="getCoursesByIds" resultType="com.example.entity.Course">
+        SELECT 
+        <include refid="Base_Column_List" />
+        FROM courses
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="getCoursesByDepartment" resultType="com.example.entity.Course">
+        SELECT 
+        <include refid="Base_Column_List" />
+        FROM courses
+        WHERE department_name = #{departmentName}
+    </select>
+
+    <select id="findById" resultMap="courseMap">
+        SELECT * FROM courses WHERE id = #{id}
+    </select>
+
+    <select id="findByTeacherId" resultMap="courseMap">
+        SELECT c.* 
+        FROM courses c
+        JOIN course_class_relations ccr ON c.id = ccr.course_id
+        WHERE ccr.teacher_id = #{teacher_id}
+        GROUP BY c.id
+    </select>
+
+    <select id="findByMajorId" resultMap="courseMap">
+        SELECT c.* 
+        FROM courses c
+        JOIN course_class_relations ccr ON c.id = ccr.course_id
+        JOIN classes cl ON ccr.class_id = cl.id
+        WHERE cl.major_id = #{major_id}
+        GROUP BY c.id
+    </select>
+
+    <select id="findBySemester" resultMap="courseMap">
+        SELECT c.* 
+        FROM courses c
+        JOIN course_class_relations ccr ON c.id = ccr.course_id
+        WHERE ccr.semester = #{semester}
+        GROUP BY c.id
+    </select>
+
+    <select id="findByClassId" resultMap="courseMap">
+        SELECT c.* 
+        FROM courses c
+        JOIN course_class_relations ccr ON c.id = ccr.course_id
+        WHERE ccr.class_id = #{class_id}
+        GROUP BY c.id
+    </select>
+
+    <select id="findByDepartmentName" resultMap="courseMap">
+        SELECT * FROM courses 
+        WHERE department_name = #{department_name}
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.Course">
+        INSERT INTO courses (
+            id, name, category, attribute, course_type, nature, department_name,
+            is_active, total_hours, theory_hours, experiment_hours, computer_hours,
+            practice_hours, credit, weekly_hours, is_practical, created_at
+        )
+        VALUES (
+            #{id}, #{name}, #{category}, #{attribute}, #{courseType}, #{nature},
+            #{departmentName}, #{isActive}, #{totalHours}, #{theoryHours},
+            #{experimentHours}, #{computerHours}, #{practiceHours}, #{credit},
+            #{weeklyHours}, #{isPractical}, #{createdAt}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.example.entity.Course">
+        UPDATE courses
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="attribute != null">attribute = #{attribute},</if>
+            <if test="courseType != null">course_type = #{courseType},</if>
+            <if test="nature != null">nature = #{nature},</if>
+            <if test="departmentName != null">department_name = #{departmentName},</if>
+            <if test="isActive != null">is_active = #{isActive},</if>
+            <if test="totalHours != null">total_hours = #{totalHours},</if>
+            <if test="theoryHours != null">theory_hours = #{theoryHours},</if>
+            <if test="experimentHours != null">experiment_hours = #{experimentHours},</if>
+            <if test="computerHours != null">computer_hours = #{computerHours},</if>
+            <if test="practiceHours != null">practice_hours = #{practiceHours},</if>
+            <if test="credit != null">credit = #{credit},</if>
+            <if test="weeklyHours != null">weekly_hours = #{weeklyHours},</if>
+            <if test="isPractical != null">is_practical = #{isPractical}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM courses WHERE id = #{id}
+    </delete>
+</mapper> 

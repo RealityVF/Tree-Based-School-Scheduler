@@ -1,0 +1,14 @@
+-- 课程选课归档表
+CREATE TABLE course_selections_archive (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+    student_id VARCHAR(20) NOT NULL COMMENT '学生ID',
+    course_id VARCHAR(20) NOT NULL COMMENT '课程ID',
+    semester VARCHAR(20) NOT NULL COMMENT '学期',
+    selection_time DATETIME NOT NULL COMMENT '选课时间',
+    status ENUM('SELECTED', 'DROPPED') NOT NULL COMMENT '选课状态',
+    score DECIMAL(5,2) COMMENT '课程成绩',
+    grade_point DECIMAL(3,2) COMMENT '绩点',
+    archive_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '归档时间',
+    INDEX idx_student_semester (student_id, semester),
+    INDEX idx_course_semester (course_id, semester)
+) COMMENT '课程选课归档表'; 
